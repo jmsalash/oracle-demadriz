@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talk to any document</title>
+<meta name="description" content="Give it a document or a web address, then talk to an AI voice agent that knows only that.">
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./app.js"></script>
+</head>
+<body data-screen="start" data-state="idle">
+<button id="open-settings" class="settings-btn" type="button" aria-haspopup="dialog">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.43-2.53a7.6 7.6 0 0 0 0-1.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.4 7.4 0 0 0-1.68-.97l-.36-2.54A.5.5 0 0 0 14.14 2h-3.84a.5.5 0 0 0-.49.42l-.36 2.54c-.6.24-1.17.57-1.68.97l-2.39-.96a.5.5 0 0 0-.6.22L2.86 8.51a.5.5 0 0 0 .12.64l2.03 1.58a7.6 7.6 0 0 0 0 1.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.51.4 1.08.73 1.68.97l.36 2.54c.04.24.25.42.49.42h3.84c.24 0 .45-.18.49-.42l.36-2.54c.6-.24 1.17-.57 1.68-.97l2.39.96c.22.09.48 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58Z"/></svg>
+  <span>Settings</span>
+</button>
+
+<main>
+  <div class="stage">
+    <button id="eye" class="eye" type="button" aria-label="Talk to the document agent"></button>
+    <p id="status" class="status" aria-live="polite"></p>
+  </div>
+
+  <section id="start" class="start">
+    <h1>Talk to any document</h1>
+    <p class="tagline">Give it a document or a web address, press Process, then talk to an AI voice agent that knows only that.</p>
+    <form id="start-form" class="doc-form" novalidate>
+      <label class="name-box" for="name">How should I address you? <em>(optional)</em></label>
+      <input id="name" class="field" type="text" maxlength="40" autocomplete="given-name" placeholder="Your name">
+      <label class="drop">
+        <input id="file" type="file" accept=".pdf,.txt,.md,.markdown,application/pdf,text/plain,text/markdown">
+        <span class="drop-main">Upload a document</span>
+        <span class="drop-sub" id="file-name">PDF, text or Markdown, up to 20 MB</span>
+      </label>
+      <div class="or"><span>or</span></div>
+      <input id="url" class="field" type="text" inputmode="url" autocomplete="url" placeholder="Give a web address, e.g. example.com" aria-label="Web address">
+      <div class="key-box">
+        <label for="key">Your own Gemini key <em>(optional)</em></label>
+        <input id="key" class="field" type="password" autocomplete="off" spellcheck="false" placeholder="Leave empty to use the free demo key">
+        <p class="help">No key? The free demo key is used. To get your own free one, <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">create a Gemini key</a>: sign in with a Google account, press "Create API key", copy it and paste it here. It stays in this browser.</p>
+      </div>
+      <button id="process" class="primary" type="submit">Process</button>
+    </form>
+    <p class="disclaimer"><b>Privacy:</b> nothing you give is stored by this site or on our servers. Your document and your conversation are sent only to Google Gemini, to power the conversation; on a free key Google may use them to improve its products, so do not upload anything private.</p>
+    <p class="disclaimer">This demo runs on a free Gemini key, so it may be busy (about three conversations at once) or used up for the day. Each visitor can talk for 5 minutes a day on the demo key, unless they add their own. Documents are limited to about 32,000 tokens; longer ones are cut. The agent is an AI and can make mistakes.</p>
+  </section>
+
+  <section id="agent" class="agent">
+    <p id="doc-label" class="doc-label"></p>
+    <div id="transcript" class="transcript" aria-live="polite" aria-label="Transcript"></div>
+  </section>
+
+  <div id="message" class="message" role="alert" hidden>
+    <p id="message-text"></p>
+    <div class="message-actions">
+      <a id="message-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" hidden>Create a free key</a>
+      <button id="message-settings" type="button" hidden>Open Settings</button>
+      <button id="message-close" type="button" class="ghost" aria-label="Close message">OK</button>
+    </div>
+  </div>
+</main>
+
+<dialog id="settings" class="settings" aria-labelledby="settings-title">
+  <form method="dialog" class="settings-head">
+    <h2 id="settings-title">Settings</h2>
+    <button class="ghost close" value="close" aria-label="Close settings">✕</button>
+  </form>
+  <section>
+    <h3>Your document</h3>
+    <p class="current" id="settings-doc"></p>
+    <form id="settings-doc-form" class="doc-form" novalidate>
+      <label class="drop small">
+        <input id="s-file" type="file" accept=".pdf,.txt,.md,.markdown,application/pdf,text/plain,text/markdown">
+        <span class="drop-main">Upload a new document</span>
+        <span class="drop-sub" id="s-file-name">PDF, text or Markdown, up to 20 MB</span>
+      </label>
+      <div class="or"><span>or</span></div>
+      <input id="s-url" class="field" type="text" inputmode="url" placeholder="Give a web address" aria-label="Web address">
+      <button class="primary" type="submit">Process</button>
+    </form>
+  </section>
+  <section>
+    <h3><label for="s-name">How should I address you? <em>(optional)</em></label></h3>
+    <form id="settings-name-form" class="row" novalidate>
+      <input id="s-name" class="field" type="text" maxlength="40" autocomplete="given-name" placeholder="Your name">
+      <button class="primary" type="submit">Save name</button>
+    </form>
+  </section>
+  <section>
+    <h3>Your own Gemini key <em>(optional)</em></h3>
+    <p class="current" id="settings-key"></p>
+    <form id="settings-key-form" novalidate>
+      <input id="s-key" class="field" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Gemini key">
+      <p class="help">Without one, the free demo key is used. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Create a free key</a>: sign in with a Google account, press "Create API key", copy it and paste it here. It stays in this browser.</p>
+      <div class="row">
+        <button class="primary" type="submit">Save key</button>
+        <button id="forget-key" class="ghost" type="button">Forget my key</button>
+      </div>
+    </form>
+  </section>
+  <p id="settings-msg" class="settings-msg" role="status"></p>
+</dialog>
+
+<dialog id="contact" class="settings contact" aria-labelledby="contact-title">
+  <form method="dialog" class="settings-head">
+    <h2 id="contact-title">Want an agent like this?</h2>
+    <button class="ghost close" value="close" aria-label="Close">✕</button>
+  </form>
+  <p>An AI voice agent for your own documents, products or website. Leave your email and José María will get back to you.</p>
+  <form id="contact-form" novalidate>
+    <label for="c-email">Your email</label>
+    <input id="c-email" class="field" type="email" maxlength="200" autocomplete="email" placeholder="you@example.com" required>
+    <label for="c-message">Anything to add? <em>(optional)</em></label>
+    <textarea id="c-message" class="field" rows="3" maxlength="1000" placeholder="What would you like it to talk about?"></textarea>
+    <button id="c-send" class="primary" type="submit">Send</button>
+  </form>
+  <p id="contact-msg" class="settings-msg" role="status"></p>
+  <p class="help">Your email goes straight to José María by email. It is not stored by this site.</p>
+</dialog>
+
+<p class="get-in-touch"><button id="open-contact" type="button" class="linkish">Want an agent like this? Get in touch</button></p>
+<footer class="credit">
+  <a href="https://demadriz.com" target="_blank" rel="noopener">Made by José María Salas · See my CV and consulting work</a>
+</footer>
+</body>
+</html>
