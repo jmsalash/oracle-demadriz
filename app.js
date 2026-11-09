@@ -1,5 +1,5 @@
 // The page: start screen (give a document) and agent screen (the eye, the transcript, Settings).
-import { SERVICE_URL } from './config.js';
+import { SERVICE_URL, ANALYTICS_BEACON, ANALYTICS_HOST } from './config.js';
 import { readDocument, getPass } from './docsource.js';
 import { getKey, setKey, forgetKey, getDoc, setDoc, getName, setName } from './keystore.js';
 import { messageFor } from './messages.js';
@@ -190,4 +190,16 @@ function init() {
   if (new URLSearchParams(location.search).has('test')) window.__das = { transcript, showMessage, openContact };
 }
 
+// Visit counts on the published website only (never on this computer).
+export function addAnalytics(doc = document, host = location.hostname) {
+  if (host !== ANALYTICS_HOST || doc.querySelector('script[data-cf-beacon]')) return false;
+  const s = doc.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.dataset.cfBeacon = JSON.stringify({ token: ANALYTICS_BEACON });
+  doc.head.appendChild(s);
+  return true;
+}
+
 init();
+addAnalytics();
