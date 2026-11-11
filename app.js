@@ -53,7 +53,7 @@ function showKey() {
 }
 
 // Reads the file or web address; on success switches to the agent screen.
-async function process({ fileInput, urlInput, button, after }) {
+async function process({ fileInput, urlInput, button, after, where = 'start' }) {
   const file = fileInput.files?.[0];
   const url = urlInput.value.trim();
   if (!file && !url) { showMessage('nothing'); return false; }
@@ -65,7 +65,7 @@ async function process({ fileInput, urlInput, button, after }) {
   button.disabled = true;
   try {
     const doc = await readDocument({ file, url: file ? '' : url, base });
-    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'ok' });
+    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'ok', where });
     setDoc(doc);
     showDoc(doc);
     transcript.clear();
@@ -76,7 +76,7 @@ async function process({ fileInput, urlInput, button, after }) {
     after?.(doc);
     return true;
   } catch (e) {
-    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'error' });
+    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'error', where });
     setState(before === 'processing' ? 'idle' : before);
     showMessage(e.code || 'error', e.detail);
     return false;
@@ -145,7 +145,7 @@ function init() {
 
   $('settings-doc-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const ok = await process({ fileInput: $('s-file'), urlInput: $('s-url'), button: e.submitter || e.target.querySelector('button') });
+    const ok = await process({ fileInput: $('s-file'), urlInput: $('s-url'), button: e.submitter || e.target.querySelector('button'), where: 'settings' });
     if (ok && !$('settings-msg').textContent) $('settings-msg').textContent = 'Document ready. Close Settings and click the eye to talk.';
   });
   $('settings-key-form').addEventListener('submit', (e) => {

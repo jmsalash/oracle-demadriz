@@ -73,11 +73,11 @@ export async function getPass({ docText, name = '', base, ownKey = '', fetchImpl
 
 // Tells the service that process was pressed, so the owner can count them; never which file or address.
 // Fire and forget: it never slows the visitor down or shows an error.
-export function sendProcessEvent({ base, kind, result, fetchImpl = (...a) => fetch(...a) }) {
+export function sendProcessEvent({ base, kind, result, where = 'start', fetchImpl = (...a) => fetch(...a) }) {
   try {
     const p = fetchImpl(`${base}/event`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, keepalive: true, cache: 'no-store',
-      body: JSON.stringify({ event: 'process', kind, result }),
+      body: JSON.stringify({ event: 'process', kind, result, where }),
     });
     p?.catch?.(() => {});
   } catch { /* counting is never worth an error */ }
