@@ -1,6 +1,6 @@
 // The page: start screen (give a document) and agent screen (the eye, the transcript, Settings).
 import { SERVICE_URL, ANALYTICS_BEACON, ANALYTICS_HOST } from './config.js';
-import { readDocument, getPass } from './docsource.js';
+import { readDocument, getPass, sendProcessEvent } from './docsource.js';
 import { getKey, setKey, forgetKey, getDoc, setDoc, getName, setName } from './keystore.js';
 import { messageFor } from './messages.js';
 import { createTranscript, domSink } from './transcript.js';
@@ -65,6 +65,7 @@ async function process({ fileInput, urlInput, button, after }) {
   button.disabled = true;
   try {
     const doc = await readDocument({ file, url: file ? '' : url, base });
+    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'ok' });
     setDoc(doc);
     showDoc(doc);
     transcript.clear();
@@ -75,6 +76,7 @@ async function process({ fileInput, urlInput, button, after }) {
     after?.(doc);
     return true;
   } catch (e) {
+    sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'error' });
     setState(before === 'processing' ? 'idle' : before);
     showMessage(e.code || 'error', e.detail);
     return false;
