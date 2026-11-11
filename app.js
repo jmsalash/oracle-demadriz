@@ -1,6 +1,6 @@
 // The page: start screen (give a document) and agent screen (the eye, the transcript, Settings).
 import { SERVICE_URL, ANALYTICS_BEACON, ANALYTICS_HOST } from './config.js';
-import { readDocument, getPass, sendProcessEvent } from './docsource.js';
+import { readDocument, getPass, sendProcessEvent, sendTalkEnd } from './docsource.js';
 import { getKey, setKey, forgetKey, getDoc, setDoc, getName, setName } from './keystore.js';
 import { messageFor } from './messages.js';
 import { createTranscript, domSink } from './transcript.js';
@@ -102,13 +102,15 @@ function talk() {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { showMessage('insecure'); return; }
   hideMessage();
   const ownKey = getKey();
+  let pass = null;
   conversation = startConversation({
-    getPass: () => getPass({ docText: doc.text, name: getName(), base, ownKey }),
+    getPass: async () => { const p = await getPass({ docText: doc.text, name: getName(), base, ownKey }); pass = p?.pass || null; return p; },
     transcript,
     onState: setState,
     onLevel: (l) => body.style.setProperty('--level', Number(l).toFixed(3)),
-    onEnd: (reason) => {
+    onEnd: (reason, seconds) => {
       conversation = null;
+      sendTalkEnd({ base, pass, seconds });
       setState('idle');
       if (reason === 'limit') { openContact("That's the end of this conversation. Thanks for trying it!"); return; }
       showMessage(reason);

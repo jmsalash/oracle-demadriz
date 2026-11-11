@@ -64,7 +64,7 @@ export async function getPass({ docText, name = '', base, ownKey = '', fetchImpl
   }
   try {
     const { ok, data } = await postJson(`${base}/token`, { docText, ...(name ? { name } : {}) }, fetchImpl);
-    if (ok && data.token) return { token: data.token, model: data.model, minutes: data.minutes || 5 };
+    if (ok && data.token) return { token: data.token, model: data.model, minutes: data.minutes || 5, ...(data.pass ? { pass: data.pass } : {}) };
     return { error: data.error || 'offline' };
   } catch {
     return { error: 'offline' };
@@ -81,4 +81,17 @@ export function sendProcessEvent({ base, kind, result, where = 'start', fetchImp
     });
     p?.catch?.(() => {});
   } catch { /* counting is never worth an error */ }
+}
+
+// Tells the service how long a conversation on the demo key really lasted, so the unused minutes come back.
+// Fire and forget, and sent even while the page closes.
+export function sendTalkEnd({ base, pass, seconds, fetchImpl = (...a) => fetch(...a) }) {
+  if (!pass) return;
+  try {
+    const p = fetchImpl(`${base}/end`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, keepalive: true, cache: 'no-store',
+      body: JSON.stringify({ pass, seconds: Math.max(0, Math.round(seconds || 0)) }),
+    });
+    p?.catch?.(() => {});
+  } catch { /* the full pass simply stays counted */ }
 }

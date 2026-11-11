@@ -1,6 +1,6 @@
 // One spoken conversation: microphone, the agent's voice, the eye's states and the transcript.
 // Ported from the document agent widget. onState(state) gets: connecting, intro, listening, thinking, speaking.
-// onEnd(reason) gets: user, hidden, mic, quota, busy, rate, badkey, offline, too-large, limit, dropped.
+// onEnd(reason, seconds) gets the talking seconds (0 if it never connected) and a reason: user, hidden, mic, quota, busy, rate, badkey, offline, too-large, limit, dropped.
 import { Player } from './audio.js';
 import { startLive } from './live.js';
 import { WRAP_UP_NOTE, WRAP_UP_SECONDS } from './shared/prompt.js';
@@ -40,7 +40,7 @@ export function startConversation({ getPass, transcript, onState, onLevel = () =
     c.player.stop();
     c.live?.end();
     c.ctx.close().catch(() => {});
-    onEnd(reason);
+    onEnd(reason, c.ready ? (Date.now() - c.readyAt) / 1000 : 0);
   }
 
   function onEvent(m) {
