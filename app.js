@@ -52,17 +52,26 @@ function showKey() {
   $('key').value = k;
 }
 
+// While a document is read, both document forms are locked (grayed out), so nobody can press Process twice.
+let busy = false;
+function lockDocForms(on) {
+  for (const el of document.querySelectorAll('#start-form :is(button, input), #settings-doc-form :is(button, input)')) el.disabled = on;
+  for (const f of document.querySelectorAll('#start-form, #settings-doc-form')) f.toggleAttribute('aria-busy', on);
+}
+
 // Reads the file or web address; on success switches to the agent screen.
-async function process({ fileInput, urlInput, button, after, where = 'start' }) {
+async function process({ fileInput, urlInput, after, where = 'start' }) {
+  if (busy) return null;
   const file = fileInput.files?.[0];
   const url = urlInput.value.trim();
-  if (!file && !url) { showMessage('nothing'); return false; }
+  if (!file && !url) { showMessage('nothing'); return null; }
   stopTalking('user');
   hideMessage();
   const before = body.dataset.state;
   setState('processing');
   if (body.dataset.screen === 'start') $('status').textContent = LABELS.processing;
-  button.disabled = true;
+  busy = true;
+  lockDocForms(true);
   try {
     const doc = await readDocument({ file, url: file ? '' : url, base });
     sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'ok', where });
@@ -74,14 +83,15 @@ async function process({ fileInput, urlInput, button, after, where = 'start' }) 
     showScreen('agent');
     if (doc.notice) $('settings-msg').textContent = doc.notice;
     after?.(doc);
-    return true;
+    return doc;
   } catch (e) {
     sendProcessEvent({ base, kind: file ? 'file' : 'url', result: 'error', where });
     setState(before === 'processing' ? 'idle' : before);
     showMessage(e.code || 'error', e.detail);
-    return false;
+    return null;
   } finally {
-    button.disabled = false;
+    busy = false;
+    lockDocForms(false);
   }
 }
 
@@ -136,7 +146,7 @@ function init() {
     setKey($('key').value);
     setName($('name').value);
     showKey();
-    process({ fileInput: $('file'), urlInput: $('url'), button: $('process') });
+    process({ fileInput: $('file'), urlInput: $('url') });
   });
 
   const dialog = $('settings');
@@ -147,8 +157,11 @@ function init() {
 
   $('settings-doc-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const ok = await process({ fileInput: $('s-file'), urlInput: $('s-url'), button: e.submitter || e.target.querySelector('button'), where: 'settings' });
-    if (ok && !$('settings-msg').textContent) $('settings-msg').textContent = 'Document ready. Close Settings and click the eye to talk.';
+    const doc = await process({ fileInput: $('s-file'), urlInput: $('s-url'), where: 'settings' });
+    if (!doc) return;
+    // Ready: back to the eye. A note about the document (such as it being cut) is shown there instead.
+    dialog.close();
+    if (doc.notice) showMessage('notice', doc.notice);
   });
   $('settings-key-form').addEventListener('submit', (e) => {
     e.preventDefault();

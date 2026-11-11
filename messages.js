@@ -19,6 +19,7 @@ export function messageFor(code, { ownKey = false, detail = '' } = {}) {
     case 'insecure': return { text: 'Talking needs a secure (https) page.', settings: false };
     case 'dropped': return { text: 'The conversation was cut off. Click the eye to talk again.', settings: false };
     case 'limit': return { text: "Time's up for this conversation.", settings: false };
+    case 'notice': return { text: detail, settings: false };
     case 'site': case 'url': return { text: detail || 'That website could not be read.', settings: false };
     default: return { text: 'Something went wrong, please try again.', settings: false };
   }

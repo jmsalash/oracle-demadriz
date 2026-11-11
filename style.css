@@ -87,7 +87,8 @@ button { font: inherit; cursor: pointer; }
 }
 .primary:hover { filter: brightness(1.08); }
 .primary:active { transform: scale(.99); }
-.primary:disabled { filter: grayscale(.6) brightness(.7); cursor: progress; }
+.primary:disabled { filter: grayscale(1) brightness(.55); opacity: .6; cursor: progress; transform: none; }
+.doc-form[aria-busy] :is(input, .drop, .field) { opacity: .5; cursor: progress; }
 .ghost { background: transparent; color: var(--ink); border: 1px solid #34333f; border-radius: 10px; padding: 9px 14px; }
 .disclaimer { color: var(--faint); font-size: .78rem; line-height: 1.5; margin: 18px auto 0; max-width: 40em; }
 
