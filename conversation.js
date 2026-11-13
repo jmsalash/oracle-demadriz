@@ -96,7 +96,7 @@ export function startConversation({ getPass, transcript, onState, onLevel = () =
       const src = c.ctx.createMediaStreamSource(stream);
       c.node = new AudioWorkletNode(c.ctx, 'cva-mic-frames');
       src.connect(c.node);
-      // The introduction says it is an AI: it always plays in full, so the mic is not sent until it ends.
+      // The greeting always plays in full, so the mic is not sent until it ends.
       c.node.port.onmessage = (ev) => { if (!c.ended && c.introDone) c.live.sendAudio(ev.data, c.ctx.sampleRate); };
     } catch (e) {
       if (c.ended) return;
