@@ -48,8 +48,6 @@ body[data-state="intro"] .eye, body[data-state="speaking"] .eye {
 
 .status { margin: 0; min-height: 1.5em; font: 500 .8rem/1.5 ui-monospace, "IBM Plex Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--soft); text-align: center; }
 body[data-state="listening"] .status { color: var(--live); }
-.ai-note { margin: -6px 0 0; color: var(--faint); font-size: .8rem; text-align: center; }
-body[data-screen="start"] .ai-note { display: none; }
 
 /* Start screen */
 .start { width: 100%; text-align: center; margin-top: 18px; }
