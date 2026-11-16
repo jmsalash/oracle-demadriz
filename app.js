@@ -49,7 +49,6 @@ function showKey() {
   const k = getKey();
   $('settings-key').textContent = k ? `Using your own key (…${k.slice(-4)}).` : 'Using the free demo key.';
   $('forget-key').hidden = !k;
-  $('key').value = k;
 }
 
 // While a document is read, both document forms are locked (grayed out), so nobody can press Process twice.
@@ -143,7 +142,6 @@ function init() {
 
   $('start-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    setKey($('key').value);
     setName($('name').value);
     showKey();
     process({ fileInput: $('file'), urlInput: $('url') });
