@@ -13,7 +13,7 @@ export const STRINGS = {
     // index.html: <title> and the start screen <h1>.
     title: `Talk to any document`,
     // index.html: #start .tagline
-    tagline: `Give it a document or a web address, press Process, then talk to an AI voice agent that knows only that. It is an AI assistant powered by Google Gemini and, like any AI, it can make mistakes.`,
+    tagline: `Give it a document or a web address, press Process, then talk to an AI voice agent that knows only that.`,
     // index.html: #open-settings span and #settings-title.
     settings: `Settings`,
     // index.html #eye aria-label; app.js setState (eye aria-label while talking / not).
@@ -133,7 +133,7 @@ export const STRINGS = {
   es: {
     language: `Idioma`,
     title: `Habla con cualquier documento`,
-    tagline: `Dale un documento o una dirección web, pulsa Procesar y habla con un agente de voz con IA que solo sabe eso. Es un asistente de IA impulsado por Google Gemini y, como cualquier IA, puede equivocarse.`,
+    tagline: `Dale un documento o una dirección web, pulsa Procesar y habla con un agente de voz con IA que solo sabe eso.`,
     settings: `Ajustes`,
     eyeTalk: `Hablar con el agente del documento`,
     eyeStop: `Parar la conversación`,
@@ -226,7 +226,7 @@ export const STRINGS = {
   ja: {
     language: `言語`,
     title: `どんな文書とも話せます`,
-    tagline: `文書かウェブアドレスを入れて「読み込む」を押すと、その内容だけを知っているAI音声エージェントと話せます。Google Gemini で動くAIアシスタントなので、ほかのAIと同じように間違えることもあります。`,
+    tagline: `文書かウェブアドレスを入れて「読み込む」を押すと、その内容だけを知っているAI音声エージェントと話せます。`,
     settings: `設定`,
     eyeTalk: `文書のエージェントと話す`,
     eyeStop: `会話を止める`,
@@ -319,7 +319,7 @@ export const STRINGS = {
   ko: {
     language: `언어`,
     title: `어떤 문서와도 대화해요`,
-    tagline: `문서나 웹 주소를 넣고 '불러오기'를 누르면, 그 내용만 아는 AI 음성 에이전트와 대화할 수 있어요. Google Gemini로 작동하는 AI 비서라서 다른 AI처럼 실수할 수도 있어요.`,
+    tagline: `문서나 웹 주소를 넣고 '불러오기'를 누르면, 그 내용만 아는 AI 음성 에이전트와 대화할 수 있어요.`,
     settings: `설정`,
     eyeTalk: `문서 에이전트와 대화하기`,
     eyeStop: `대화 멈추기`,
@@ -412,7 +412,7 @@ export const STRINGS = {
   fr: {
     language: `Langue`,
     title: `Parlez avec n'importe quel document`,
-    tagline: `Donnez-lui un document ou une adresse web, appuyez sur Traiter, puis parlez avec un agent vocal IA qui ne connaît que ça. C'est un assistant IA basé sur Google Gemini et, comme toute IA, il peut se tromper.`,
+    tagline: `Donnez-lui un document ou une adresse web, appuyez sur Traiter, puis parlez avec un agent vocal IA qui ne connaît que ça.`,
     settings: `Réglages`,
     eyeTalk: `Parler avec l'agent du document`,
     eyeStop: `Arrêter la conversation`,
@@ -505,7 +505,7 @@ export const STRINGS = {
   it: {
     language: `Lingua`,
     title: `Parla con qualsiasi documento`,
-    tagline: `Dagli un documento o un indirizzo web, premi Elabora e poi parla con un agente vocale IA che conosce solo quello. È un assistente IA basato su Google Gemini e, come ogni IA, può sbagliare.`,
+    tagline: `Dagli un documento o un indirizzo web, premi Elabora e poi parla con un agente vocale IA che conosce solo quello.`,
     settings: `Impostazioni`,
     eyeTalk: `Parla con l'agente del documento`,
     eyeStop: `Ferma la conversazione`,
@@ -598,7 +598,7 @@ export const STRINGS = {
   de: {
     language: `Sprache`,
     title: `Sprechen Sie mit jedem Dokument`,
-    tagline: `Geben Sie ein Dokument oder eine Webadresse an, drücken Sie auf Einlesen und sprechen Sie dann mit einem KI-Sprachagenten, der nur das kennt. Es ist ein KI-Assistent auf Basis von Google Gemini und kann sich, wie jede KI, irren.`,
+    tagline: `Geben Sie ein Dokument oder eine Webadresse an, drücken Sie auf Einlesen und sprechen Sie dann mit einem KI-Sprachagenten, der nur das kennt.`,
     settings: `Einstellungen`,
     eyeTalk: `Mit dem Dokument-Agenten sprechen`,
     eyeStop: `Gespräch beenden`,
