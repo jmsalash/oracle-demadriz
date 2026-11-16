@@ -6,48 +6,64 @@ import { messageFor } from './messages.js';
 import { createTranscript, domSink } from './transcript.js';
 import { startConversation } from './conversation.js';
 import { sendContact, contactMessage } from './contact.js';
+import { t, initLang, setLang, getLang, LANGS, LANG_NAMES } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 const base = (SERVICE_URL || location.origin).replace(/\/+$/, '');
 const body = document.body;
-const LABELS = {
-  idle: 'Click the eye to talk', processing: 'Reading your document…', connecting: 'Connecting…',
-  intro: 'Introducing itself', listening: 'Listening · click the eye to stop', thinking: 'Thinking…', speaking: 'Speaking',
+const LABEL_KEYS = {
+  idle: 'stateIdle', processing: 'stateProcessing', connecting: 'stateConnecting',
+  intro: 'stateIntro', listening: 'stateListening', thinking: 'stateThinking', speaking: 'stateSpeaking',
 };
+const label = (state) => (LABEL_KEYS[state] ? t(LABEL_KEYS[state]) : '');
 const transcript = createTranscript(domSink($('transcript')));
 let conversation = null;
 
 function setState(state) {
   body.dataset.state = state;
   const screen = body.dataset.screen;
-  $('status').textContent = screen === 'start' && (state === 'idle') ? '' : (LABELS[state] || '');
+  $('status').textContent = screen === 'start' && (state === 'idle') ? '' : label(state);
   const live = Boolean(conversation);
-  $('eye').setAttribute('aria-label', live ? 'Stop the conversation' : 'Talk to the document agent');
+  $('eye').setAttribute('aria-label', t(live ? 'eyeStop' : 'eyeTalk'));
+}
+
+// The language picker: big, above the title on the start screen; small, next to Settings on the agent screen.
+function placePicker(screen) {
+  const pick = document.querySelector('.lang-pick');
+  if (screen === 'start') $('start').prepend(pick);
+  else $('open-settings').after(pick);
 }
 
 function showScreen(screen) {
   body.dataset.screen = screen;
+  placePicker(screen);
   setState('idle');
 }
 
+let shown = null; // the message on screen, so it can be said again in another language
 function showMessage(code, detail) {
   if (code === 'user' || code === 'hidden') return;
+  shown = { code, detail };
   const m = messageFor(code, { ownKey: Boolean(getKey()), detail });
   $('message-text').textContent = m.text;
   $('message-settings').hidden = !m.settings;
   $('message-link').hidden = !m.link;
   $('message').hidden = false;
 }
-const hideMessage = () => { $('message').hidden = true; };
+const hideMessage = () => { $('message').hidden = true; shown = null; };
+
+// A document's label and its note (such as it being cut), in the page's language.
+const docLabel = (doc) => (doc.labelKey ? t(doc.labelKey, doc.labelVars) : doc.label);
+const docNotice = (doc) => (doc.noticeKey ? t(doc.noticeKey, doc.noticeVars) : doc.notice);
 
 function showDoc(doc) {
-  $('doc-label').textContent = doc ? `Talking about ${doc.label}` : '';
-  $('settings-doc').textContent = doc ? `Now: ${doc.label}` : 'No document yet.';
+  $('doc-label').textContent = doc ? t('talkingAbout', { label: docLabel(doc) }) : '';
+  $('settings-doc').textContent = doc ? t('docNow', { label: docLabel(doc) }) : t('noDoc');
 }
 
 function showKey() {
   const k = getKey();
-  $('settings-key').textContent = k ? `Using your own key (…${k.slice(-4)}).` : 'Using the free demo key.';
+  $('settings-key').textContent = k ? t('keyOwn', { last4: k.slice(-4) }) : t('keyDemo');
   $('forget-key').hidden = !k;
 }
 
@@ -68,7 +84,7 @@ async function process({ fileInput, urlInput, after, where = 'start' }) {
   hideMessage();
   const before = body.dataset.state;
   setState('processing');
-  if (body.dataset.screen === 'start') $('status').textContent = LABELS.processing;
+  if (body.dataset.screen === 'start') $('status').textContent = label('processing');
   busy = true;
   lockDocForms(true);
   try {
@@ -80,7 +96,7 @@ async function process({ fileInput, urlInput, after, where = 'start' }) {
     fileInput.value = ''; urlInput.value = '';
     fileInput.dispatchEvent(new Event('change'));
     showScreen('agent');
-    if (doc.notice) $('settings-msg').textContent = doc.notice;
+    if (doc.notice) $('settings-msg').textContent = docNotice(doc);
     after?.(doc);
     return doc;
   } catch (e) {
@@ -113,7 +129,7 @@ function talk() {
   const ownKey = getKey();
   let pass = null;
   conversation = startConversation({
-    getPass: async () => { const p = await getPass({ docText: doc.text, name: getName(), base, ownKey }); pass = p?.pass || null; return p; },
+    getPass: async () => { const p = await getPass({ docText: doc.text, name: getName(), base, ownKey, lang: getLang() }); pass = p?.pass || null; return p; },
     transcript,
     onState: setState,
     onLevel: (l) => body.style.setProperty('--level', Number(l).toFixed(3)),
@@ -121,23 +137,40 @@ function talk() {
       conversation = null;
       sendTalkEnd({ base, pass, seconds });
       setState('idle');
-      if (reason === 'limit') { openContact("That's the end of this conversation. Thanks for trying it!"); return; }
+      if (reason === 'limit') { openContact(t('endThanks')); return; }
       showMessage(reason);
     },
   });
 }
 
-function chosen(input, nameEl, fallback) {
-  input.addEventListener('change', () => {
+function chosen(input, nameEl) {
+  const show = () => {
     const f = input.files?.[0];
-    nameEl.textContent = f ? f.name : fallback;
+    nameEl.textContent = f ? f.name : t('dropSub');
     input.closest('.drop').classList.toggle('chosen', Boolean(f));
-  });
+  };
+  input.addEventListener('change', show);
+  addEventListener('langchange', show);
+  show();
 }
 
 function init() {
-  chosen($('file'), $('file-name'), 'PDF, text or Markdown, up to 20 MB');
-  chosen($('s-file'), $('s-file-name'), 'PDF, text or Markdown, up to 20 MB');
+  initLang();
+  const pick = $('lang');
+  for (const code of LANGS) pick.add(new Option(LANG_NAMES[code], code));
+  pick.value = getLang();
+  pick.addEventListener('change', () => setLang(pick.value));
+  // Words set by the code are written again in the new language.
+  addEventListener('langchange', () => {
+    pick.value = getLang();
+    setState(body.dataset.state);
+    showDoc(getDoc());
+    showKey();
+    $('settings-msg').textContent = '';
+    if (shown && !$('message').hidden) showMessage(shown.code, shown.detail);
+  });
+  chosen($('file'), $('file-name'));
+  chosen($('s-file'), $('s-file-name'));
   $('eye').addEventListener('click', talk);
 
   $('start-form').addEventListener('submit', (e) => {
@@ -159,34 +192,34 @@ function init() {
     if (!doc) return;
     // Ready: back to the eye. A note about the document (such as it being cut) is shown there instead.
     dialog.close();
-    if (doc.notice) showMessage('notice', doc.notice);
+    if (doc.notice) showMessage('notice', docNotice(doc));
   });
   $('settings-key-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const k = $('s-key').value.trim();
-    if (!k) { $('settings-msg').textContent = 'Paste a key first.'; return; }
+    if (!k) { $('settings-msg').textContent = t('pasteKeyFirst'); return; }
     stopTalking('user');
     setKey(k); showKey(); $('s-key').value = '';
-    $('settings-msg').textContent = 'Key saved in this browser. Your next conversation uses it.';
+    $('settings-msg').textContent = t('keySaved');
   });
   $('settings-name-form').addEventListener('submit', (e) => {
     e.preventDefault();
     stopTalking('user');
     setName($('s-name').value);
     $('name').value = getName();
-    $('settings-msg').textContent = getName() ? `Saved. The agent will call you ${getName()}.` : 'Saved. The agent will not use a name.';
+    $('settings-msg').textContent = getName() ? t('nameSaved', { name: getName() }) : t('nameCleared');
   });
   $('forget-key').addEventListener('click', () => {
     stopTalking('user');
     forgetKey(); showKey();
-    $('settings-msg').textContent = 'Your key was forgotten. The free demo key is used again.';
+    $('settings-msg').textContent = t('keyForgotten');
   });
 
   $('open-contact').addEventListener('click', () => openContact());
   $('contact-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('c-send').disabled = true;
-    $('contact-msg').textContent = 'Sending…';
+    $('contact-msg').textContent = t('sending');
     const result = await sendContact({ base, email: $('c-email').value, message: $('c-message').value });
     $('contact-msg').textContent = contactMessage(result);
     $('c-send').disabled = false;

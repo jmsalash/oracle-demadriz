@@ -39,7 +39,7 @@ export async function readDocument({ file, url, base, fetchImpl = (...a) => fetc
       if (!raw.trim()) throw fail('empty');
     }
     const fit = await fitToTokens({ text: raw.trim(), count: estimateTokens });
-    return { text: fit.text, label: `${file.name} · about ${fmt(fit.tokens)} tokens`, notice: fit.notice };
+    return { text: fit.text, label: `${file.name} · about ${fmt(fit.tokens)} tokens`, labelKey: 'fileLabel', labelVars: { file: file.name, tokens: fmt(fit.tokens) }, notice: fit.notice, noticeKey: fit.noticeKey, noticeVars: fit.noticeVars };
   }
   const address = String(url || '').trim();
   if (!address) throw fail('nothing');
@@ -47,15 +47,15 @@ export async function readDocument({ file, url, base, fetchImpl = (...a) => fetc
   const { ok, data } = await postJson(`${base}/crawl`, { url: full }, fetchImpl);
   if (!ok) throw fail(data.error || 'offline', data.message || '');
   const pages = `${data.pages} page${data.pages === 1 ? '' : 's'}`;
-  return { text: data.text, label: `${pages} from ${data.host}`, notice: data.notice || '' };
+  return { text: data.text, label: `${pages} from ${data.host}`, labelKey: data.pages === 1 ? 'sitePage' : 'sitePages', labelVars: { n: data.pages, host: data.host }, notice: data.notice || '', noticeKey: data.noticeKey, noticeVars: data.noticeVars };
 }
 
 // A one-use pass. With the visitor's own key the browser asks Gemini itself and the service is never called.
-export async function getPass({ docText, name = '', base, ownKey = '', fetchImpl = (...a) => fetch(...a) }) {
+export async function getPass({ docText, name = '', base, ownKey = '', lang = 'en', fetchImpl = (...a) => fetch(...a) }) {
   if (ownKey) {
     try {
       const minutes = OWN_KEY_MINUTES;
-      const instructions = buildInstructions({ docText, visitorName: name, minutes });
+      const instructions = buildInstructions({ docText, visitorName: name, minutes, lang });
       const { token, model } = await mintToken({ apiKey: ownKey, instructions, sessionMinutes: minutes, fetchImpl });
       return { token, model, minutes };
     } catch (e) {
@@ -63,7 +63,7 @@ export async function getPass({ docText, name = '', base, ownKey = '', fetchImpl
     }
   }
   try {
-    const { ok, data } = await postJson(`${base}/token`, { docText, ...(name ? { name } : {}) }, fetchImpl);
+    const { ok, data } = await postJson(`${base}/token`, { docText, lang, ...(name ? { name } : {}) }, fetchImpl);
     if (ok && data.token) return { token: data.token, model: data.model, minutes: data.minutes || 5, ...(data.pass ? { pass: data.pass } : {}) };
     return { error: data.error || 'offline' };
   } catch {

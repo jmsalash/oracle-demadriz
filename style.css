@@ -164,3 +164,27 @@ body[data-screen="agent"] .settings-btn { display: inline-flex; }
   .settings-btn { top: 12px; right: 12px; padding: 9px 13px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Language picker: big and easy to spot above the title before starting; small in the top corner afterwards. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lang-pick {
+  display: inline-flex; align-items: center; gap: 10px; margin: 0 auto 22px; padding: 6px 8px 6px 16px;
+  border: 2px solid var(--eye); border-radius: 999px; background: #16151d; cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(255,194,26,.12);
+}
+.lang-pick svg { width: 26px; height: 26px; fill: var(--eye); flex: none; }
+.lang-pick select {
+  appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: 1.1rem; font-weight: 700; padding: 8px 30px 8px 2px; cursor: pointer; max-width: 100%;
+  background-image: linear-gradient(45deg, transparent 50%, var(--eye) 50%), linear-gradient(135deg, var(--eye) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 52%, calc(100% - 8px) 52%; background-size: 6px 6px; background-repeat: no-repeat;
+}
+.lang-pick select option { background: #16151d; color: var(--ink); }
+.lang-pick:focus-within { box-shadow: 0 0 0 4px rgba(255,194,26,.35); }
+body[data-screen="agent"] .lang-pick {
+  position: fixed; top: 16px; left: 16px; z-index: 10; margin: 0; padding: 2px 4px 2px 12px; border-width: 1px;
+  border-color: #3a3946; box-shadow: 0 4px 18px rgba(0,0,0,.4);
+}
+body[data-screen="agent"] .lang-pick svg { width: 20px; height: 20px; }
+body[data-screen="agent"] .lang-pick select { font-size: .95rem; font-weight: 600; }
+@media (max-width: 560px) { body[data-screen="agent"] .lang-pick { top: 12px; left: 12px; } }

@@ -9,7 +9,7 @@ export const forgetKey = () => { try { ls().removeItem(KEY); } catch { /* nothin
 export function getDoc() {
   try { const d = JSON.parse(ss().getItem(DOC) || 'null'); return d && typeof d.text === 'string' && d.text ? d : null; } catch { return null; }
 }
-export const setDoc = (doc) => { try { ss().setItem(DOC, JSON.stringify({ text: doc.text, label: doc.label || '' })); } catch { /* too big for this browser */ } };
+export const setDoc = (doc) => { try { ss().setItem(DOC, JSON.stringify({ text: doc.text, label: doc.label || '', ...(doc.labelKey ? { labelKey: doc.labelKey, labelVars: doc.labelVars } : {}) })); } catch { /* too big for this browser */ } };
 export const clearDoc = () => { try { ss().removeItem(DOC); } catch { /* nothing kept */ } };
 
 // How the visitor wants to be addressed, remembered on this device.
